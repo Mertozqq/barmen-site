@@ -19,6 +19,8 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const storageDir = path.join(__dirname, "storage");
+const clientDistDir = path.join(__dirname, "..", "dist");
+const clientIndexFile = path.join(clientDistDir, "index.html");
 
 const env = {
   port: Number(process.env.PORT ?? 8787),
@@ -277,6 +279,12 @@ app.get("/api/payments/status/:orderId", (request, response) => {
   }
 
   response.json(order);
+});
+
+app.use(express.static(clientDistDir));
+
+app.get("*", (_request, response) => {
+  response.sendFile(clientIndexFile);
 });
 
 app.listen(env.port, () => {
