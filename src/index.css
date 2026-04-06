@@ -1530,6 +1530,36 @@ textarea {
     width: 100%;
   }
 
+  .site-header__inner {
+    gap: 8px;
+  }
+
+  .site-header__actions {
+    min-width: 0;
+  }
+
+  .site-header__actions .button {
+    width: auto;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+
+  .brand {
+    gap: 10px;
+  }
+
+  .brand__mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    font-size: 1.2rem;
+  }
+
+  .brand small {
+    line-height: 1.35;
+  }
+
   .hero__actions {
     gap: 12px;
   }
@@ -1650,5 +1680,31 @@ textarea {
     left: auto;
     right: 0;
     width: min(240px, calc(100vw - 88px));
+  }
+}
+
+@media (max-width: 380px) {
+  .site-header__inner {
+    gap: 6px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand__mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+
+  .brand small {
+    display: none;
+  }
+
+  .site-header__actions .button {
+    padding: 9px 12px;
+    font-size: 0.8rem;
   }
 }
