@@ -283,7 +283,7 @@ app.get("/api/payments/status/:orderId", (request, response) => {
 
 app.use(express.static(clientDistDir));
 
-app.get("*", (_request, response) => {
+app.get(/^(?!\/api).*/, (_request, response) => {
   response.sendFile(clientIndexFile);
 });
 
