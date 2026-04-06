@@ -1094,6 +1094,7 @@ textarea {
 }
 
 .checkout-course-card__tooltip {
+  display: none;
   position: absolute;
   right: 0;
   bottom: calc(100% + 10px);
@@ -1115,6 +1116,7 @@ textarea {
 
 .checkout-course-card__feature-icon:hover .checkout-course-card__tooltip,
 .checkout-course-card__feature-icon:focus-visible .checkout-course-card__tooltip {
+  display: block;
   opacity: 1;
   transform: translateY(0);
 }
@@ -1645,8 +1647,8 @@ textarea {
   }
 
   .checkout-course-card__tooltip {
-    left: 0;
-    right: auto;
+    left: auto;
+    right: 0;
     width: min(240px, calc(100vw - 88px));
   }
 }
