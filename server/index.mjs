@@ -26,7 +26,7 @@ const env = {
   port: Number(process.env.PORT ?? 8787),
   publicAppUrl: process.env.PUBLIC_APP_URL ?? "http://localhost:5173",
   courseName: process.env.COURSE_NAME ?? "Курс Бармен-Профессионал",
-  coursePriceRub: Number(process.env.COURSE_PRICE_RUB ?? 54000),
+  coursePriceRub: Number(process.env.COURSE_PRICE_RUB ?? 39500),
   defaultProvider: process.env.DEFAULT_PAYMENT_PROVIDER ?? "tbank",
   sellerCompanyName:
     process.env.SELLER_COMPANY_NAME ?? "ИП Сидоров Игорь Олегович",
