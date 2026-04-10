@@ -57,6 +57,7 @@ const env = {
     process.env.TBANK_SUCCESS_URL ?? "http://localhost:5173/payment/success",
   tbankFailUrl:
     process.env.TBANK_FAIL_URL ?? "http://localhost:5173/payment/fail",
+  tbankSendReceipt: process.env.TBANK_SEND_RECEIPT === "true",
   tbankTaxation: process.env.TBANK_TAXATION ?? "usn_income",
   tbankVat: process.env.TBANK_VAT ?? "none",
   tbankPaymentMethod:

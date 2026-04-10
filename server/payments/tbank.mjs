@@ -59,7 +59,7 @@ export function getSellerRequisites(env) {
 }
 
 export function buildTbankInitPayload(order, env) {
-  return {
+  const payload = {
     TerminalKey: env.tbankTerminalKey,
     Amount: order.amount,
     OrderId: order.order_id,
@@ -73,7 +73,10 @@ export function buildTbankInitPayload(order, env) {
       promo: order.promo,
       payment_provider: order.payment_provider,
     },
-    Receipt: {
+  };
+
+  if (env.tbankSendReceipt) {
+    payload.Receipt = {
       Email: order.email || env.sellerEmail,
       Taxation: env.tbankTaxation,
       Items: [
@@ -87,8 +90,10 @@ export function buildTbankInitPayload(order, env) {
           PaymentObject: env.tbankPaymentObject,
         },
       ],
-    },
-  };
+    };
+  }
+
+  return payload;
 }
 
 export function buildTbankIntegrationSnapshot(order, env) {
