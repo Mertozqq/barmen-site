@@ -9,6 +9,7 @@ import express from "express";
 import {
   assertTbankConfigured,
   buildTbankIntegrationSnapshot,
+  createTbankPayment,
   getTbankProviderMeta,
   mapTbankStatus,
   normalizeTbankWebhook,
@@ -216,6 +217,16 @@ app.post("/api/payments/create", async (request, response) => {
 
     if (payload.payment_provider === "tbank") {
       order.payment_details = buildTbankIntegrationSnapshot(order, env);
+      const tbankPayment = await createTbankPayment(order, env);
+
+      order.payment_id = tbankPayment.paymentId || null;
+      order.payment_url = tbankPayment.paymentUrl;
+      order.status = mapTbankStatus(tbankPayment.status, false);
+      order.payment_details = {
+        ...(order.payment_details ?? {}),
+        init_request: tbankPayment.requestPayload,
+        init_response: tbankPayment.raw,
+      };
     }
 
     orders.set(orderId, order);
@@ -224,7 +235,7 @@ app.post("/api/payments/create", async (request, response) => {
     response.json({
       success: true,
       order_id: orderId,
-      payment_url: `${env.publicAppUrl}/payment/pending?order_id=${orderId}`,
+      payment_url: order.payment_url ?? `${env.publicAppUrl}/payment/pending?order_id=${orderId}`,
     });
   } catch (error) {
     const message =

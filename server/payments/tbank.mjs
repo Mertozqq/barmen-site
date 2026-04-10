@@ -1,11 +1,32 @@
+import crypto from "node:crypto";
+
 function hasValue(value) {
   return typeof value === "string" && value.trim().length > 0;
+}
+
+function buildTbankToken(payload, secretKey) {
+  const tokenSource = { Password: secretKey };
+
+  for (const [key, value] of Object.entries(payload)) {
+    if (key === "Token" || value == null || typeof value === "object") {
+      continue;
+    }
+
+    tokenSource[key] = String(value);
+  }
+
+  const rawToken = Object.keys(tokenSource)
+    .sort()
+    .map((key) => tokenSource[key])
+    .join("");
+
+  return crypto.createHash("sha256").update(rawToken).digest("hex");
 }
 
 export function getTbankProviderMeta(env) {
   return {
     id: "tbank",
-    name: "ТБанк",
+    name: "Т-Банк",
     description: "Оплата через Т-Банк.",
     available: true,
     configured: isTbankConfigured(env),
@@ -79,7 +100,55 @@ export function buildTbankIntegrationSnapshot(order, env) {
     fail_url: env.tbankFailUrl,
     seller: getSellerRequisites(env),
     payload_preview: buildTbankInitPayload(order, env),
-    note: "Интеграция еще не завершена: реальный запрос Init в API Т-Банка пока не отправляется.",
+  };
+}
+
+export async function createTbankPayment(order, env) {
+  const payload = buildTbankInitPayload(order, env);
+  const token = buildTbankToken(payload, env.tbankSecretKey);
+  const requestPayload = {
+    ...payload,
+    Token: token,
+  };
+
+  const response = await fetch(`${env.tbankApiUrl}/Init`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestPayload),
+  });
+
+  let responsePayload;
+
+  try {
+    responsePayload = await response.json();
+  } catch {
+    throw new Error("Т-Банк вернул некорректный ответ на Init-запрос.");
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      responsePayload?.Message ||
+        responsePayload?.Details ||
+        "Не удалось создать платеж в Т-Банке.",
+    );
+  }
+
+  if (!responsePayload?.Success || !hasValue(responsePayload?.PaymentURL)) {
+    throw new Error(
+      responsePayload?.Message ||
+        responsePayload?.Details ||
+        "Т-Банк не вернул ссылку на оплату.",
+    );
+  }
+
+  return {
+    paymentId: String(responsePayload.PaymentId ?? "").trim(),
+    paymentUrl: String(responsePayload.PaymentURL ?? "").trim(),
+    status: String(responsePayload.Status ?? "").trim().toLowerCase(),
+    raw: responsePayload,
+    requestPayload,
   };
 }
 
