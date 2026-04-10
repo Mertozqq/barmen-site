@@ -13,6 +13,14 @@ import {
   mapTbankStatus,
   normalizeTbankWebhook,
 } from "./payments/tbank.mjs";
+import {
+  getFirstValidationError,
+  validateEmail,
+  validateMessage,
+  validateName,
+  validatePhone,
+  validatePromo,
+} from "./validation.mjs";
 
 dotenv.config();
 
@@ -59,7 +67,7 @@ const app = express();
 const orders = new Map();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "64kb" }));
 
 const paymentProviders = [getTbankProviderMeta(env)];
 
@@ -138,10 +146,16 @@ app.get("/api/payments/providers", (_request, response) => {
 app.post("/api/leads", async (request, response) => {
   try {
     const lead = sanitizeLead(request.body);
+    const leadValidationError = getFirstValidationError([
+      validateName(lead.name),
+      validatePhone(lead.phone),
+      validateEmail(lead.email),
+      validateMessage(lead.message),
+    ]);
 
-    if (!lead.name || !lead.phone || !lead.email) {
+    if (leadValidationError) {
       response.status(400).json({
-        error: "Заполните имя, телефон и email.",
+        error: leadValidationError,
       });
       return;
     }
@@ -168,10 +182,16 @@ app.post("/api/leads", async (request, response) => {
 app.post("/api/payments/create", async (request, response) => {
   try {
     const payload = sanitizeOrder(request.body);
+    const orderValidationError = getFirstValidationError([
+      validateName(payload.name),
+      validatePhone(payload.phone),
+      validateEmail(payload.email),
+      validatePromo(payload.promo),
+    ]);
 
-    if (!payload.name || !payload.phone || !payload.email) {
+    if (orderValidationError) {
       response.status(400).json({
-        error: "Заполните имя, телефон и email перед оплатой.",
+        error: orderValidationError,
       });
       return;
     }
@@ -210,8 +230,7 @@ app.post("/api/payments/create", async (request, response) => {
     const message =
       error instanceof Error ? error.message : "Не удалось создать платеж.";
 
-    const statusCode =
-      message.includes("Т-Банк еще не настроен") ? 503 : 500;
+    const statusCode = message.includes("Т-Банк еще не настроен") ? 503 : 500;
 
     response.status(statusCode).json({
       error: message,

@@ -1,6 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
+import {
+  validateEmail,
+  validateMessage,
+  validateName,
+  validatePhone,
+} from "../../lib/validation";
 
 type LeadModalProps = {
   isOpen: boolean;
@@ -60,8 +66,19 @@ export function LeadModal({ isOpen, onClose }: LeadModalProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setStatus("");
+    const validationError =
+      validateName(form.name) ||
+      validatePhone(form.phone) ||
+      validateEmail(form.email) ||
+      validateMessage(form.message);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setSubmitting(true);
     setError("");
 
     try {
@@ -102,6 +119,8 @@ export function LeadModal({ isOpen, onClose }: LeadModalProps) {
             <span>Имя</span>
             <input
               required
+              minLength={2}
+              maxLength={60}
               type="text"
               value={form.name}
               onChange={(event) =>
@@ -114,6 +133,7 @@ export function LeadModal({ isOpen, onClose }: LeadModalProps) {
             <span>Телефон</span>
             <input
               required
+              maxLength={24}
               type="tel"
               value={form.phone}
               onChange={(event) =>
@@ -126,6 +146,7 @@ export function LeadModal({ isOpen, onClose }: LeadModalProps) {
             <span>Email</span>
             <input
               required
+              maxLength={120}
               type="email"
               value={form.email}
               onChange={(event) =>
@@ -137,6 +158,7 @@ export function LeadModal({ isOpen, onClose }: LeadModalProps) {
           <label className="field">
             <span>Комментарий</span>
             <textarea
+              maxLength={1000}
               rows={4}
               value={form.message}
               onChange={(event) =>

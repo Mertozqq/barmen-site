@@ -5,6 +5,12 @@ import { PageHero } from "../components/shared/PageHero";
 import { siteContent } from "../content/siteContent";
 import { api, type PaymentConfig, type PaymentProviderMeta } from "../lib/api";
 import { formatCurrency } from "../lib/format";
+import {
+  validateEmail,
+  validateName,
+  validatePhone,
+  validatePromo,
+} from "../lib/validation";
 
 type PaymentFormState = {
   name: string;
@@ -86,8 +92,19 @@ export function CheckoutPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setError("");
+    const validationError =
+      validateName(form.name) ||
+      validatePhone(form.phone) ||
+      validateEmail(form.email) ||
+      validatePromo(form.promo);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
       const response = await api.createPayment({
@@ -174,6 +191,8 @@ export function CheckoutPage() {
                 <span>Имя</span>
                 <input
                   required
+                  minLength={2}
+                  maxLength={60}
                   type="text"
                   value={form.name}
                   onChange={(event) =>
@@ -186,6 +205,7 @@ export function CheckoutPage() {
                 <span>Телефон</span>
                 <input
                   required
+                  maxLength={24}
                   type="tel"
                   value={form.phone}
                   onChange={(event) =>
@@ -198,6 +218,7 @@ export function CheckoutPage() {
                 <span>Email</span>
                 <input
                   required
+                  maxLength={120}
                   type="email"
                   value={form.email}
                   onChange={(event) =>
@@ -209,6 +230,7 @@ export function CheckoutPage() {
               <label className="field">
                 <span>Промокод</span>
                 <input
+                  maxLength={32}
                   type="text"
                   value={form.promo}
                   onChange={(event) =>
