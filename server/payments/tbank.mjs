@@ -23,6 +23,12 @@ function buildTbankToken(payload, secretKey) {
   return crypto.createHash("sha256").update(rawToken).digest("hex");
 }
 
+function withOrderId(url, orderId) {
+  const parsedUrl = new URL(url);
+  parsedUrl.searchParams.set("order_id", orderId);
+  return parsedUrl.toString();
+}
+
 export function getTbankProviderMeta(env) {
   return {
     id: "tbank",
@@ -65,8 +71,8 @@ export function buildTbankInitPayload(order, env) {
     OrderId: order.order_id,
     Description: order.course_name,
     NotificationURL: env.tbankNotificationUrl,
-    SuccessURL: env.tbankSuccessUrl,
-    FailURL: env.tbankFailUrl,
+    SuccessURL: withOrderId(env.tbankSuccessUrl, order.order_id),
+    FailURL: withOrderId(env.tbankFailUrl, order.order_id),
   };
 
   if (!env.tbankUseMinimalInit) {
