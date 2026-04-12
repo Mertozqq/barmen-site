@@ -67,13 +67,16 @@ export function buildTbankInitPayload(order, env) {
     NotificationURL: env.tbankNotificationUrl,
     SuccessURL: env.tbankSuccessUrl,
     FailURL: env.tbankFailUrl,
-    DATA: {
+  };
+
+  if (!env.tbankUseMinimalInit) {
+    payload.DATA = {
       email: order.email,
       phone: order.phone,
       promo: order.promo,
       payment_provider: order.payment_provider,
-    },
-  };
+    };
+  }
 
   if (env.tbankSendReceipt) {
     payload.Receipt = {
@@ -103,6 +106,8 @@ export function buildTbankIntegrationSnapshot(order, env) {
     notification_url: env.tbankNotificationUrl,
     success_url: env.tbankSuccessUrl,
     fail_url: env.tbankFailUrl,
+    minimal_init: env.tbankUseMinimalInit,
+    receipt_enabled: env.tbankSendReceipt,
     seller: getSellerRequisites(env),
     payload_preview: buildTbankInitPayload(order, env),
   };
@@ -116,13 +121,26 @@ export async function createTbankPayment(order, env) {
     Token: token,
   };
 
-  const response = await fetch(`${env.tbankApiUrl}/Init`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestPayload),
-  });
+  let response;
+
+  try {
+    response = await fetch(`${env.tbankApiUrl}/Init`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestPayload),
+    });
+  } catch (error) {
+    const details =
+      error instanceof Error
+        ? [error.message, error.cause instanceof Error ? error.cause.message : ""]
+            .filter(Boolean)
+            .join(" | ")
+        : "Неизвестная ошибка сети";
+
+    throw new Error(`Не удалось отправить Init-запрос в Т-Банк: ${details}`);
+  }
 
   let responsePayload;
 

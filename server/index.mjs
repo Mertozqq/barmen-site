@@ -57,6 +57,7 @@ const env = {
     process.env.TBANK_SUCCESS_URL ?? "http://localhost:5173/payment/success",
   tbankFailUrl:
     process.env.TBANK_FAIL_URL ?? "http://localhost:5173/payment/fail",
+  tbankUseMinimalInit: process.env.TBANK_USE_MINIMAL_INIT !== "false",
   tbankSendReceipt: process.env.TBANK_SEND_RECEIPT === "true",
   tbankTaxation: process.env.TBANK_TAXATION ?? "usn_income",
   tbankVat: process.env.TBANK_VAT ?? "none",
@@ -244,6 +245,8 @@ app.post("/api/payments/create", async (request, response) => {
 
     const statusCode = message.includes("Т-Банк еще не настроен") ? 503 : 500;
 
+    console.error("Payment creation failed:", error);
+
     response.status(statusCode).json({
       error: message,
     });
@@ -286,6 +289,7 @@ app.post("/api/payments/tbank/webhook", async (request, response) => {
 
     response.json({ ok: true });
   } catch (error) {
+    console.error("T-Bank webhook processing failed:", error);
     response.status(500).json({
       error:
         error instanceof Error
