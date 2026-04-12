@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import successfulPaymentImage from "../assets/successful-payment.svg";
 import { ImagePlaceholder } from "../components/shared/ImagePlaceholder";
 import { api, type PaymentStatus } from "../lib/api";
 import { formatCurrency } from "../lib/format";
@@ -44,7 +45,15 @@ export function PaymentResultPage({ success }: PaymentResultPageProps) {
   return (
     <section className="result-page">
       <div className={`result-card ${success ? "is-success" : "is-fail"}`}>
-        <ImagePlaceholder label="Иконка статуса" />
+        {success ? (
+          <img
+            className="result-card__status-image"
+            src={successfulPaymentImage}
+            alt="Успешная оплата"
+          />
+        ) : (
+          <ImagePlaceholder label="Иконка статуса" />
+        )}
         <span className="eyebrow">{eyebrow}</span>
         <h1>{title}</h1>
         <p>{description}</p>
