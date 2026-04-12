@@ -13,6 +13,7 @@ import {
   getTbankProviderMeta,
   mapTbankStatus,
   normalizeTbankWebhook,
+  validateTbankWebhookToken,
 } from "./payments/tbank.mjs";
 import {
   getFirstValidationError,
@@ -255,6 +256,11 @@ app.post("/api/payments/create", async (request, response) => {
 
 app.post("/api/payments/tbank/webhook", async (request, response) => {
   try {
+    if (!validateTbankWebhookToken(request.body, env.tbankSecretKey)) {
+      response.status(400).send("INVALID TOKEN");
+      return;
+    }
+
     const webhook = normalizeTbankWebhook(request.body);
 
     if (!webhook.order_id) {
@@ -287,7 +293,7 @@ app.post("/api/payments/tbank/webhook", async (request, response) => {
     orders.set(order.order_id, updatedOrder);
     await appendRecord("orders.ndjson", updatedOrder);
 
-    response.json({ ok: true });
+    response.status(200).type("text/plain").send("OK");
   } catch (error) {
     console.error("T-Bank webhook processing failed:", error);
     response.status(500).json({

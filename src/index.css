@@ -729,6 +729,10 @@ textarea {
   border-radius: var(--radius-sm);
 }
 
+.result-card__meta {
+  margin-bottom: 15px;
+}
+
 .result-card__status-image {
   display: block;
   width: min(220px, 100%);

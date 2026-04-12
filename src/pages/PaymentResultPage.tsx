@@ -61,15 +61,15 @@ export function PaymentResultPage({ success }: PaymentResultPageProps) {
         {status ? (
           <div className="result-card__meta">
             <div>
-              <span>Номер заказа</span>
+              <span>Номер заказа: </span>
               <strong>{status.order_id}</strong>
             </div>
             <div>
-              <span>Курс</span>
+              <span>Курс: </span>
               <strong>{status.course_name}</strong>
             </div>
             <div>
-              <span>Сумма</span>
+              <span>Сумма: </span>
               <strong>{formatCurrency(status.amount / 100)}</strong>
             </div>
           </div>

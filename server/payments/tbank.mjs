@@ -23,6 +23,25 @@ function buildTbankToken(payload, secretKey) {
   return crypto.createHash("sha256").update(rawToken).digest("hex");
 }
 
+function buildTbankNotificationToken(body, secretKey) {
+  const tokenSource = { Password: secretKey };
+
+  for (const [key, value] of Object.entries(body ?? {})) {
+    if (key === "Token" || value == null || typeof value === "object") {
+      continue;
+    }
+
+    tokenSource[key] = String(value);
+  }
+
+  const rawToken = Object.keys(tokenSource)
+    .sort()
+    .map((key) => tokenSource[key])
+    .join("");
+
+  return crypto.createHash("sha256").update(rawToken).digest("hex");
+}
+
 function withOrderId(url, orderId) {
   const parsedUrl = new URL(url);
   parsedUrl.searchParams.set("order_id", orderId);
@@ -187,8 +206,20 @@ export function normalizeTbankWebhook(body) {
     order_id: String(body.OrderId ?? body.order_id ?? "").trim(),
     status: String(body.Status ?? body.status ?? "").trim().toLowerCase(),
     success: Boolean(body.Success ?? body.success ?? false),
+    token: String(body.Token ?? body.token ?? "").trim(),
     raw: body,
   };
+}
+
+export function validateTbankWebhookToken(body, secretKey) {
+  const providedToken = String(body?.Token ?? body?.token ?? "").trim().toLowerCase();
+
+  if (!providedToken) {
+    return false;
+  }
+
+  const expectedToken = buildTbankNotificationToken(body, secretKey);
+  return expectedToken === providedToken;
 }
 
 export function mapTbankStatus(status, success) {
